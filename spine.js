@@ -138,13 +138,28 @@ var main = (function (_super) {
         return JSON.stringify(DBJson);
     };
     main.prototype.skinss = function (skin, data) {
-        var _skin = {};
-        _skin["name"] = "";
-        _skin["slot"] = [];
-        for (var obj in data) {
-            this.slotSkin(_skin["slot"], data[obj]);
+        if(!Array.isArray(data)){
+            var _skin = {};
+            _skin["name"] = "";
+            _skin["slot"] = [];
+            for (var obj in data) {
+                this.slotSkin(_skin["slot"], data[obj]);
+            }
+            skin.push(_skin);
         }
-        skin.push(_skin);
+        else{
+            for (var i = 0; i < data.length; i++) {
+                var skinData = data[i];
+                var _skin = {}; 
+                _skin["name"] = skinData["name"];  // 取出name属性
+                _skin["slot"] = [];
+                if (skinData["attachments"]) {
+                    this.slotSkin(_skin["slot"], skinData["attachments"]);  // 处理attachments中的数据
+                }
+                skin.push(_skin);
+            }
+        }
+        
     };
     main.prototype.slotSkin = function (slot, data) {
         var oo;
@@ -966,13 +981,25 @@ var main = (function (_super) {
     };
     main.prototype.addCurveToDB = function (_frame, obj) {
         if (obj.hasOwnProperty("curve")) {
+            var curve =[];
+            if  (obj.hasOwnProperty("c2")){
+                curve.push(obj["curve"]);
+                curve.push(obj["c2"]);
+                curve.push(obj["c3"]);
+                if(obj.hasOwnProperty("c4")){
+                    curve.push(obj["c4"]);
+                }
+                else{
+                    curve.push(1);
+                }
+            }
             if (obj["curve"] == "stepped") {
                 if (!_frame["tweenEasing"]) {
                     _frame["tweenEasing"] = "NaN";
                 }
             }
             else {
-                this.addCurveToFrame(_frame, obj["curve"]);
+                this.addCurveToFrame(_frame, curve);
             }
         }
         else {
